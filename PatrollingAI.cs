@@ -9,9 +9,19 @@ public class PatrollingAI : MonoBehaviour
     [SerializeField] Transform[] Waypoints;
     [SerializeField] float changeTime;
     
-    [Header("TargetChase")]
+    [Header("Target Chase")]
     [SerializeField] Transform target;
     [SerializeField] float detectionRange;
+
+    [Header("Patrolling Without Waypoints")]
+    [SerializeField] bool usingWaypoints = true;
+    [SerializeField] float minX;
+    [SerializeField] float maxX;
+    [SerializeField] float y;
+    [SerializeField] float minZ;
+    [SerializeField] float maxZ;
+
+    Vector3 patrollingPosition;
 
     float targetDistance;
     float waitTime;
@@ -25,35 +35,70 @@ public class PatrollingAI : MonoBehaviour
     void Start()
     {
         waitTime = changeTime;
-        agent = GetComponent<NavMeshAgent>();        
-        randomWaypoint = Random.Range(0, Waypoints.Length);
+        agent = GetComponent<NavMeshAgent>();
+        if(usingWaypoints)
+        {
+            randomWaypoint = Random.Range(0, Waypoints.Length);
+        }
+        else
+        {
+            patrollingPosition = new Vector3(Random.Range(minX, maxX), y, Random.Range(minZ, maxZ));
+        }
+        
     }
 
     void Update()
     {
-        targetDistance = Vector3.Distance(transform.position, target.transform.position);     
+        targetDistance = Vector3.Distance(transform.position, target.transform.position);
 
-        if(patrol)
+        if (patrol)
         {
-            //Moving Towards Waypoint
-            agent.destination = Waypoints[randomWaypoint].position;
-
-            if (Vector3.Distance(transform.position, Waypoints[randomWaypoint].position) < 0.1f)
+            //Patrolling using Waypoints
+            if(usingWaypoints)
             {
-                if (waitTime <= 0)
+                //Moving Towards Waypoint
+                agent.destination = Waypoints[randomWaypoint].position;
+
+                if (Vector3.Distance(transform.position, Waypoints[randomWaypoint].position) < 0.1f)
                 {
-                    randomWaypoint = Random.Range(0, Waypoints.Length);
-                    waitTime = changeTime;
-                }
-                else
-                {
-                    waitTime -= Time.deltaTime;
+                    if (waitTime <= 0)
+                    {
+                        randomWaypoint = Random.Range(0, Waypoints.Length);
+
+                        waitTime = changeTime;
+                    }
+                    else
+                    {
+                        waitTime -= Time.deltaTime;
+                    }
                 }
             }
-        }      
+
+            //Patrolling without using Waypoints
+            else
+            {
+                //Moving Towards PatrollingPosition
+                agent.destination = patrollingPosition;
+
+                if (Vector3.Distance(transform.position, patrollingPosition) < 0.1f)
+                {
+                    if (waitTime <= 0)
+                    {
+                        patrollingPosition = new Vector3(Random.Range(minX, maxX), y, Random.Range(minZ, maxZ));
+
+                        waitTime = changeTime;
+                    }
+                    else
+                    {
+                        waitTime -= Time.deltaTime;
+                    }
+                }
+            }
+            
+        }
 
         //ChasingTarget
-        if(targetDistance < detectionRange)
+        if (targetDistance < detectionRange)
         {         
             patrol = false;
             agent.destination = target.position;
@@ -63,6 +108,5 @@ public class PatrollingAI : MonoBehaviour
             patrol = true;
         }
     } 
-
     
 }
