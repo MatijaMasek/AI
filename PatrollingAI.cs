@@ -4,17 +4,22 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public class PatrollingAI : MonoBehaviour
-{
-    [Header("Waypoints")]
-    [SerializeField] Transform[] Waypoints;
-    [SerializeField] float changeTime;
-    
+{ 
+
     [Header("Target Chase")]
     [SerializeField] Transform target;
     [SerializeField] float detectionRange;
+    [SerializeField] bool usingFOV;
+    [SerializeField] LayerMask mask;
 
-    [Header("Patrolling Without Waypoints")]
+    [SerializeField] float detectionAngle = 20f;
+
+    [Header("Waypoints")]
+    [SerializeField] Transform[] Waypoints;
+    [SerializeField] float changeTime;
     [SerializeField] bool usingWaypoints = true;
+
+    [Header("Patrolling Without Waypoints")]   
     [SerializeField] float minX;
     [SerializeField] float maxX;
     [SerializeField] float y;
@@ -96,17 +101,55 @@ public class PatrollingAI : MonoBehaviour
             }
             
         }
-
+        
         //ChasingTarget
-        if (targetDistance < detectionRange)
-        {         
-            patrol = false;
-            agent.destination = target.position;
+        if (usingFOV)
+        {
+
+            float detectionAngles = GetTargetAngles(transform, target);
+
+            Debug.Log(detectionAngles);
+
+            bool lookRight = detectionAngles <= detectionAngle && detectionAngles >= 0;
+            bool lookLeft = detectionAngles >= -detectionAngle && detectionAngles <= 0;
+
+            bool withinDistance = Vector3.Distance(transform.position, target.position) <= detectionRange;
+
+            if ((lookRight || lookLeft) && withinDistance)
+            {
+                patrol = false;
+                agent.destination = target.position;
+            }
+            else
+            {
+                patrol = true;
+            }
+
         }
         else
-        {          
-            patrol = true;
+        {
+            if (targetDistance < detectionRange)
+            {
+                patrol = false;
+                agent.destination = target.position;
+            }
+            else
+            {
+                patrol = true;
+            }
         }
-    } 
-    
+    }
+
+    private float GetTargetAngles(Transform Self, Transform Target)
+    {   
+        //Declare         
+        Vector3 SelfForwardXZ = new Vector3(Self.forward.x, 0f, Self.forward.z);
+        
+        Vector3 TargetForwardXZ = new Vector3(Target.position.x - Self.position.x, 0f, Target.position.z - Self.position.z).normalized;         
+
+        //Return         
+        return Vector3.SignedAngle(SelfForwardXZ, TargetForwardXZ, Self.up);      //x
+                    
+    }
+
 }
