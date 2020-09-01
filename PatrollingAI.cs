@@ -10,7 +10,7 @@ public class PatrollingAI : MonoBehaviour
 
     [Header("Field Of View")]
     [SerializeField] bool usingFOV;
-    [SerializeField] float detectionAngle = 20f;
+    [SerializeField] float detectionAngle = 20f;    //This means x degrees on one side
 
     [Header("Waypoints")]
     [SerializeField] bool usingWaypoints = true;
