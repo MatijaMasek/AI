@@ -4,13 +4,21 @@ using UnityEngine;
 
 public class Turret : MonoBehaviour
 {
-
+    [Header("Detecting Player")]
     [SerializeField] float rotationSpeed;
     [SerializeField] float detectionRange;
     [SerializeField] float detectionAngle;
 
+    [Header("Restricting Rotation")]
+    [SerializeField] bool restrictRotation;
+    [SerializeField] float rotationAngle;
+    
+    [Header("Transforms")]
     [SerializeField] Transform target;
     [SerializeField] Transform turret;
+    [SerializeField] Transform body;
+
+    bool otherSide = false;
 
     bool actionMode = false;
     
@@ -19,7 +27,34 @@ public class Turret : MonoBehaviour
     {
         if(!actionMode)
         {
-            turret.Rotate(Vector3.up * rotationSpeed * 10 * Time.deltaTime);
+            if(restrictRotation)
+            {
+                float angle = Vector3.SignedAngle(body.forward, turret.forward, Vector3.up);
+                
+                if(angle < rotationAngle && !otherSide)
+                {
+                    turret.Rotate(Vector3.up * rotationSpeed * 10 * Time.deltaTime);
+                }
+                else
+                {
+                    otherSide = true;
+                }
+
+                if(angle > -rotationAngle && otherSide)
+                {
+                    turret.Rotate(Vector3.down * rotationSpeed * 10 * Time.deltaTime);
+                }
+                else
+                {
+                    otherSide = false;
+                }
+            }
+            else
+            {
+                turret.Rotate(Vector3.up * rotationSpeed * 10 * Time.deltaTime);
+            }
+            
+
         }
         
 

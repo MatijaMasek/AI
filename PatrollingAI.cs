@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 
 public class PatrollingAI : MonoBehaviour
@@ -9,17 +7,18 @@ public class PatrollingAI : MonoBehaviour
     [Header("Target Chase")]
     [SerializeField] Transform target;
     [SerializeField] float detectionRange;
-    [SerializeField] bool usingFOV;
-    [SerializeField] LayerMask mask;
 
+    [Header("Field Of View")]
+    [SerializeField] bool usingFOV;
     [SerializeField] float detectionAngle = 20f;
 
     [Header("Waypoints")]
-    [SerializeField] Transform[] Waypoints;
-    [SerializeField] float changeTime;
     [SerializeField] bool usingWaypoints = true;
+    [SerializeField] Transform[] Waypoints;
+    [SerializeField] float changeTime;  
 
-    [Header("Patrolling Without Waypoints")]   
+    [Header("Patrolling Without Waypoints")]
+    [SerializeField] float maxTravelTime;
     [SerializeField] float minX;
     [SerializeField] float maxX;
     [SerializeField] float y;
@@ -29,7 +28,9 @@ public class PatrollingAI : MonoBehaviour
     Vector3 patrollingPosition;
 
     float targetDistance;
-    float waitTime;
+
+    float travelTime;   //Used with maxTravelTime
+    float waitTime;     //Used with changeTime
 
     int randomWaypoint;
 
@@ -40,6 +41,7 @@ public class PatrollingAI : MonoBehaviour
     void Start()
     {
         waitTime = changeTime;
+        travelTime = maxTravelTime;
         agent = GetComponent<NavMeshAgent>();
         if(usingWaypoints)
         {
@@ -80,17 +82,21 @@ public class PatrollingAI : MonoBehaviour
             }
 
             //Patrolling without using Waypoints
+
             else
             {
                 //Moving Towards PatrollingPosition
                 agent.destination = patrollingPosition;
 
-                if (Vector3.Distance(transform.position, patrollingPosition) < 0.1f)
+                travelTime -= Time.deltaTime;
+
+                if (Vector3.Distance(transform.position, patrollingPosition) < 0.1f || travelTime <= 0 )
                 {
                     if (waitTime <= 0)
                     {
                         patrollingPosition = new Vector3(Random.Range(minX, maxX), y, Random.Range(minZ, maxZ));
 
+                        travelTime = maxTravelTime;
                         waitTime = changeTime;
                     }
                     else
