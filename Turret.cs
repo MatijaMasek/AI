@@ -16,16 +16,27 @@ public class Turret : MonoBehaviour
     [SerializeField] Transform turret;
     [SerializeField] Transform body;
 
+    [Header("Light Color")]
+    [SerializeField] Light detectionLight;
+    [SerializeField] Color searchColor = Color.white;
+    [SerializeField] Color attackColor = Color.red;
+    [Space]
+    [SerializeField] Renderer rendLight;
+    [SerializeField] Material searchMat;
+    [SerializeField] Material attackMat;
+
     bool otherSide = false;
 
     bool actionMode = false;
-    
-    
+
     void Update()
     {
         if(!actionMode)
         {
-            if(restrictRotation)
+            detectionLight.color = Color.Lerp(attackColor, searchColor, 1);
+            rendLight.material = searchMat;
+
+            if (restrictRotation)
             {
                 float angle = Vector3.SignedAngle(body.forward, turret.forward, Vector3.up);
                 
@@ -68,6 +79,8 @@ public class Turret : MonoBehaviour
         if ((lookRight || lookLeft) && withinDistance)
         {
             actionMode = true;
+            detectionLight.color = Color.Lerp(searchColor, attackColor, 1);
+            rendLight.material = attackMat;
             FaceTowards(target);
         }
         else
